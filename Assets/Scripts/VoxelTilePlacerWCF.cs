@@ -36,7 +36,7 @@ public class VoxelTilePlacerWCF : MonoBehaviour
                     TilePrefabs[i].Weight /= 2;
                     if (TilePrefabs[i].Weight <= 0) TilePrefabs[i].Weight = 1;
 
-                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right,
+                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right * TilePrefabs[i].VoxelSize * TilePrefabs[i].TileSideVoxels * 2,
                         Quaternion.identity);
                     clone.Rotate90();
                     TilePrefabs.Add(clone);
@@ -46,18 +46,18 @@ public class VoxelTilePlacerWCF : MonoBehaviour
                     TilePrefabs[i].Weight /= 4;
                     if (TilePrefabs[i].Weight <= 0) TilePrefabs[i].Weight = 1;
 
-                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right,
+                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right * TilePrefabs[i].VoxelSize * TilePrefabs[i].TileSideVoxels * 2,
                         Quaternion.identity);
                     clone.Rotate90();
                     TilePrefabs.Add(clone);
 
-                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right * 2,
+                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right * 2 * TilePrefabs[i].VoxelSize * TilePrefabs[i].TileSideVoxels * 2,
                         Quaternion.identity);
                     clone.Rotate90();
                     clone.Rotate90();
                     TilePrefabs.Add(clone);
 
-                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right * 3,
+                    clone = Instantiate(TilePrefabs[i], TilePrefabs[i].transform.position + Vector3.right * 3 * TilePrefabs[i].VoxelSize * TilePrefabs[i].TileSideVoxels * 2,
                         Quaternion.identity);
                     clone.Rotate90();
                     clone.Rotate90();

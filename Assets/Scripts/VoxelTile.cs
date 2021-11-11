@@ -138,7 +138,7 @@ public class VoxelTile : MonoBehaviour
         else if (direction == Direction.Down) rayStart.y = meshCollider.bounds.max.y + half;
         else rayStart.y = meshCollider.bounds.min.y + half + verticalLayer * vox;
 
-        //Debug.DrawRay(rayStart, direction * .1f, Color.blue, 2);
+        Debug.DrawRay(rayStart, rayDir * .1f, Color.blue, 2);
 
         if (Physics.Raycast(new Ray(rayStart, rayDir), out RaycastHit hit, vox))
         {
