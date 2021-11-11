@@ -1,7 +1,9 @@
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
-public class VoxelTile : MonoBehaviour
+public class TestT : MonoBehaviour
 {
     public float VoxelSize = 0.1f;
     public int TileSideVoxels = 10;
@@ -25,7 +27,8 @@ public class VoxelTile : MonoBehaviour
     [HideInInspector] public int[] ColorsUp;
     [HideInInspector] public int[] ColorsDown;
 
-    public void CalculateSidesColors()
+  
+    private void Start()
     {
         ColorsRight = new int[TileSideVoxels * TileSideVoxels];
         ColorsForward = new int[TileSideVoxels * TileSideVoxels];
@@ -38,17 +41,20 @@ public class VoxelTile : MonoBehaviour
         {
             for (int i = 0; i < TileSideVoxels; i++)
             {
-                ColorsRight[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Right);
-                ColorsForward[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Forward);
-                ColorsLeft[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Left);
-                ColorsBack[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Back);
-                ColorsUp[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Up);
-                ColorsDown[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Down);
+                ColorsRight[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Right);
+                ColorsForward[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Forward);
+                ColorsLeft[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Left);
+                ColorsBack[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Back);
+                ColorsUp[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Up);
+                ColorsDown[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Down);
             }
         }
+
+        Debug.Log("У повёрнутого сразу ");
+        Debug.Log(string.Join(",", ColorsDown));
     }
 
-    public void Rotate90()
+    public void Rotate90Test()
     {
         transform.Rotate(0, 90, 0);
 
@@ -59,7 +65,6 @@ public class VoxelTile : MonoBehaviour
         int[] colorsUpNew = new int[TileSideVoxels * TileSideVoxels];
         int[] colorsDownNew = new int[TileSideVoxels * TileSideVoxels];
 
-
         for (int layer = 0; layer < TileSideVoxels; layer++)
         {
             for (int offset = 0; offset < TileSideVoxels; offset++)
@@ -68,8 +73,10 @@ public class VoxelTile : MonoBehaviour
                 colorsForwardNew[layer * TileSideVoxels + offset] = ColorsLeft[layer * TileSideVoxels + offset];
                 colorsLeftNew[layer * TileSideVoxels + offset] = ColorsBack[layer * TileSideVoxels + TileSideVoxels - offset - 1];
                 colorsBackNew[layer * TileSideVoxels + offset] = ColorsRight[layer * TileSideVoxels + offset];
-                colorsUpNew[layer * TileSideVoxels + offset] = ColorsUp[offset * TileSideVoxels + (TileSideVoxels - layer - 1)];
-                colorsDownNew[layer * TileSideVoxels + offset] = ColorsDown[offset * TileSideVoxels + (TileSideVoxels - layer - 1)];
+                colorsUpNew[layer * TileSideVoxels + offset] = ColorsUp[(TileSideVoxels - offset - 1) * layer + layer];
+                colorsDownNew[layer * TileSideVoxels + offset] = ColorsDown[(TileSideVoxels - offset - 1) * TileSideVoxels + layer];
+                colorsUpNew[layer * TileSideVoxels + offset] = ColorsUp[(TileSideVoxels - offset - 1) * TileSideVoxels + layer];
+
             }
         }
 
@@ -80,10 +87,11 @@ public class VoxelTile : MonoBehaviour
         ColorsDown = colorsDownNew;
         ColorsUp = colorsUpNew;
 
-        //Debug.Log(string.Join(",", ColorsRight));
+        //Debug.Log(string.Join(",", ColorsDown));
+
     }
 
-    private int GetVoxelColor(int verticalLayer, int horizontalOffset, Direction direction)
+    private int GetVoxelColorTest(int verticalLayer, int horizontalOffset, Direction direction)
     {
         var meshCollider = GetComponentInChildren<MeshCollider>();
 
@@ -92,6 +100,7 @@ public class VoxelTile : MonoBehaviour
 
         Vector3 rayStart;
         Vector3 rayDir;
+
         if (direction == Direction.Right)
         {
             rayStart = meshCollider.bounds.min +
@@ -128,17 +137,14 @@ public class VoxelTile : MonoBehaviour
                        new Vector3(half + horizontalOffset * vox, -half, half + verticalLayer * vox);
             rayDir = Vector3.up;
         }
-        else
-        {
-            throw new ArgumentException("Wrong direction value, should be Direction.left/right/back/forward/up/down",
-                nameof(direction));
-        }
+        else return 1;
 
         if (direction == Direction.Up) rayStart.y = meshCollider.bounds.min.y - half;
         else if (direction == Direction.Down) rayStart.y = meshCollider.bounds.max.y + half;
         else rayStart.y = meshCollider.bounds.min.y + half + verticalLayer * vox;
 
-        //Debug.DrawRay(rayStart, direction * .1f, Color.blue, 2);
+        //Debug.DrawRay(rayStart, rayDir * .1f, Color.blue, 2);
+
 
         if (Physics.Raycast(new Ray(rayStart, rayDir), out RaycastHit hit, vox))
         {

@@ -1,10 +1,13 @@
 using System;
 using UnityEngine;
+using System.Linq;
 
-public class VoxelTile : MonoBehaviour
+public class Test : MonoBehaviour
 {
     public float VoxelSize = 0.1f;
     public int TileSideVoxels = 10;
+
+    public TestT test;
 
     [Range(1, 100)]
     public int Weight = 50;
@@ -25,7 +28,11 @@ public class VoxelTile : MonoBehaviour
     [HideInInspector] public int[] ColorsUp;
     [HideInInspector] public int[] ColorsDown;
 
-    public void CalculateSidesColors()
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.D)) WhatColor();
+    }
+    private void WhatColor()
     {
         ColorsRight = new int[TileSideVoxels * TileSideVoxels];
         ColorsForward = new int[TileSideVoxels * TileSideVoxels];
@@ -38,19 +45,23 @@ public class VoxelTile : MonoBehaviour
         {
             for (int i = 0; i < TileSideVoxels; i++)
             {
-                ColorsRight[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Right);
-                ColorsForward[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Forward);
-                ColorsLeft[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Left);
-                ColorsBack[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Back);
-                ColorsUp[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Up);
-                ColorsDown[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Down);
+                ColorsRight[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Right);
+                ColorsForward[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Forward);
+                ColorsLeft[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Left);
+                ColorsBack[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Back);
+                ColorsUp[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Up);
+                ColorsDown[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Down);
             }
         }
+        Rotate90Test();
+        //Debug.Log(string.Join(",", ColorsDown));
+
     }
 
-    public void Rotate90()
+    public void Rotate90Test()
     {
         transform.Rotate(0, 90, 0);
+
 
         int[] colorsRightNew = new int[TileSideVoxels * TileSideVoxels];
         int[] colorsForwardNew = new int[TileSideVoxels * TileSideVoxels];
@@ -58,7 +69,8 @@ public class VoxelTile : MonoBehaviour
         int[] colorsBackNew = new int[TileSideVoxels * TileSideVoxels];
         int[] colorsUpNew = new int[TileSideVoxels * TileSideVoxels];
         int[] colorsDownNew = new int[TileSideVoxels * TileSideVoxels];
-
+        int[] colors = new int[4*4];
+ 
 
         for (int layer = 0; layer < TileSideVoxels; layer++)
         {
@@ -73,17 +85,30 @@ public class VoxelTile : MonoBehaviour
             }
         }
 
+
+
+
         ColorsRight = colorsRightNew;
         ColorsForward = colorsForwardNew;
         ColorsLeft = colorsLeftNew;
         ColorsBack = colorsBackNew;
         ColorsDown = colorsDownNew;
         ColorsUp = colorsUpNew;
+        Debug.Log(Enumerable.SequenceEqual(ColorsDown, test.ColorsDown));
 
-        //Debug.Log(string.Join(",", ColorsRight));
+
+        ColorsDown = new int[TileSideVoxels * TileSideVoxels];
+
+        for (int y = 0; y < TileSideVoxels; y++)
+        {
+            for (int i = 0; i < TileSideVoxels; i++)
+            {
+                ColorsDown[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Down);
+            }
+        }
     }
 
-    private int GetVoxelColor(int verticalLayer, int horizontalOffset, Direction direction)
+    private int GetVoxelColorTest(int verticalLayer, int horizontalOffset, Direction direction)
     {
         var meshCollider = GetComponentInChildren<MeshCollider>();
 
@@ -92,6 +117,7 @@ public class VoxelTile : MonoBehaviour
 
         Vector3 rayStart;
         Vector3 rayDir;
+
         if (direction == Direction.Right)
         {
             rayStart = meshCollider.bounds.min +
@@ -138,7 +164,8 @@ public class VoxelTile : MonoBehaviour
         else if (direction == Direction.Down) rayStart.y = meshCollider.bounds.max.y + half;
         else rayStart.y = meshCollider.bounds.min.y + half + verticalLayer * vox;
 
-        //Debug.DrawRay(rayStart, direction * .1f, Color.blue, 2);
+        //Debug.DrawRay(rayStart, rayDir * .1f, Color.blue, 2);
+
 
         if (Physics.Raycast(new Ray(rayStart, rayDir), out RaycastHit hit, vox))
         {
