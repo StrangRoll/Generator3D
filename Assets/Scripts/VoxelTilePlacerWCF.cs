@@ -7,16 +7,16 @@ using Random = UnityEngine.Random;
 public class VoxelTilePlacerWCF : MonoBehaviour
 {
     public List<VoxelTile> TilePrefabs;
-    public Vector2Int MapSize = new Vector2Int(15, 15);
+    public Vector3Int MapSize = new Vector3Int(10, 10, 5);
 
-    private VoxelTile[,] spawnedTiles;
+    private VoxelTile[,,] spawnedTiles;
 
-    private Queue<Vector2Int> recalcPossibleTilesQueue = new Queue<Vector2Int>();
-    private List<VoxelTile>[,] possibleTiles;
+    private Queue<Vector3Int> recalcPossibleTilesQueue = new Queue<Vector3Int>();
+    private List<VoxelTile>[,,] possibleTiles;
 
     private void Start()
     {
-        spawnedTiles = new VoxelTile[MapSize.x, MapSize.y];
+        spawnedTiles = new VoxelTile[MapSize.x, MapSize.y, MapSize.z];
 
         foreach (VoxelTile tilePrefab in TilePrefabs)
         {
