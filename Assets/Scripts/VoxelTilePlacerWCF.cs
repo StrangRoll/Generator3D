@@ -101,7 +101,7 @@ public class VoxelTilePlacerWCF : MonoBehaviour
                     }
 
             VoxelTile tileInCenter = GetRandomTile(TilePrefabs);
-            possibleTiles[MapSize.x / 2, MapSize.y / 2, Mapsize.z / 2] = new List<VoxelTile> { tileInCenter };
+            possibleTiles[MapSize.x / 2, MapSize.y / 2, MapSize.z / 2] = new List<VoxelTile> { tileInCenter };
 
             recalcPossibleTilesQueue.Clear();
             EnqueueNeighboursToRecalc(new Vector3Int(MapSize.x / 2, MapSize.y / 2, MapSize.z / 2));
@@ -116,7 +116,7 @@ public class VoxelTilePlacerWCF : MonoBehaviour
 
     private bool GenerateAllPossibleTiles()
     {
-        int maxIterations = MapSize.x * MapSize.y * 2;
+        int maxIterations = MapSize.x * MapSize.y * MapSize.z * 2;
         int iterations = 0;
         int backtracks = 0;
 
@@ -127,14 +127,14 @@ public class VoxelTilePlacerWCF : MonoBehaviour
 
             while (recalcPossibleTilesQueue.Count > 0 && innerIterations++ < maxInnerIterations)
             {
-                Vector2Int position = recalcPossibleTilesQueue.Dequeue();
-                if (position.x == 0 || position.y == 0 ||
-                    position.x == MapSize.x - 1 || position.y == MapSize.y - 1)
+                Vector3Int position = recalcPossibleTilesQueue.Dequeue();
+                if (position.x == 0 || position.y == 0 || position.z == 0 ||
+                    position.x == MapSize.x - 1 || position.y == MapSize.y - 1 || position.z == MapSize.z - 1)
                 {
                     continue;
                 }
 
-                List<VoxelTile> possibleTilesHere = possibleTiles[position.x, position.y];
+                List<VoxelTile> possibleTilesHere = possibleTiles[position.x, position.y, position.z];
 
                 int countRemoved = possibleTilesHere.RemoveAll(t => !IsTilePossible(t, position));
 
@@ -145,10 +145,12 @@ public class VoxelTilePlacerWCF : MonoBehaviour
                     // Зашли в тупик, в этих координатах невозможен ни один тайл. Попробуем ещё раз, разрешим все тайлы
                     // в этих и соседних координатах, и посмотрим устаканится ли всё
                     possibleTilesHere.AddRange(TilePrefabs);
-                    possibleTiles[position.x + 1, position.y] = new List<VoxelTile>(TilePrefabs);
-                    possibleTiles[position.x - 1, position.y] = new List<VoxelTile>(TilePrefabs);
-                    possibleTiles[position.x, position.y + 1] = new List<VoxelTile>(TilePrefabs);
-                    possibleTiles[position.x, position.y - 1] = new List<VoxelTile>(TilePrefabs);
+                    possibleTiles[position.x + 1, position.y, position.z] = new List<VoxelTile>(TilePrefabs);
+                    possibleTiles[position.x - 1, position.y, position.z] = new List<VoxelTile>(TilePrefabs);
+                    possibleTiles[position.x, position.y + 1, position.z] = new List<VoxelTile>(TilePrefabs);
+                    possibleTiles[position.x, position.y - 1, position.z] = new List<VoxelTile>(TilePrefabs);
+                    possibleTiles[position.x, position.y, position.z + 1] = new List<VoxelTile>(TilePrefabs);
+                    possibleTiles[position.x, position.y, position.z - 1] = new List<VoxelTile>(TilePrefabs);
 
                     EnqueueNeighboursToRecalc(position);
 
@@ -157,18 +159,19 @@ public class VoxelTilePlacerWCF : MonoBehaviour
             }
             if (innerIterations == maxInnerIterations) break;
 
-            List<VoxelTile> maxCountTile = possibleTiles[1, 1];
-            Vector2Int maxCountTilePosition = new Vector2Int(1, 1);
+            List<VoxelTile> maxCountTile = possibleTiles[1, 1, 1];
+            Vector3Int maxCountTilePosition = new Vector3Int(1, 1, 1);
 
             for (int x = 1; x < MapSize.x - 1; x++)
                 for (int y = 1; y < MapSize.y - 1; y++)
-                {
-                    if (possibleTiles[x, y].Count > maxCountTile.Count)
+                    for (int z = 1; z < MapSize.z - 1; z++) 
                     {
-                        maxCountTile = possibleTiles[x, y];
-                        maxCountTilePosition = new Vector2Int(x, y);
+                        if (possibleTiles[x, y, z].Count > maxCountTile.Count)
+                        {
+                            maxCountTile = possibleTiles[x, y, z];
+                            maxCountTilePosition = new Vector3Int(x, y, z);
+                        }
                     }
-                }
 
             if (maxCountTile.Count == 1)
             {
@@ -177,7 +180,7 @@ public class VoxelTilePlacerWCF : MonoBehaviour
             }
 
             VoxelTile tileToCollapse = GetRandomTile(maxCountTile);
-            possibleTiles[maxCountTilePosition.x, maxCountTilePosition.y] = new List<VoxelTile> { tileToCollapse };
+            possibleTiles[maxCountTilePosition.x, maxCountTilePosition.y, maxCountTilePosition.z] = new List<VoxelTile> { tileToCollapse };
             EnqueueNeighboursToRecalc(maxCountTilePosition);
         }
 
@@ -185,22 +188,30 @@ public class VoxelTilePlacerWCF : MonoBehaviour
         return false;
     }
 
-    private bool IsTilePossible(VoxelTile tile, Vector2Int position)
+    private bool IsTilePossible(VoxelTile tile, Vector3Int position)
     {
-        bool isAllRightImpossible = possibleTiles[position.x - 1, position.y]
+        bool isAllRightImpossible = possibleTiles[position.x - 1, position.y, position.z]
             .All(rightTile => !CanAppendTile(tile, rightTile, Direction.Right));
         if (isAllRightImpossible) return false;
 
-        bool isAllLeftImpossible = possibleTiles[position.x + 1, position.y]
+        bool isAllLeftImpossible = possibleTiles[position.x + 1, position.y, position.z]
             .All(leftTile => !CanAppendTile(tile, leftTile, Direction.Left));
         if (isAllLeftImpossible) return false;
 
-        bool isAllForwardImpossible = possibleTiles[position.x, position.y - 1]
+        bool isAllForwardImpossible = possibleTiles[position.x, position.y - 1, position.z]
             .All(fwdTile => !CanAppendTile(tile, fwdTile, Direction.Forward));
         if (isAllForwardImpossible) return false;
 
-        bool isAllBackImpossible = possibleTiles[position.x, position.y + 1]
+        bool isAllBackImpossible = possibleTiles[position.x, position.y + 1, position.z]
             .All(backTile => !CanAppendTile(tile, backTile, Direction.Back));
+        if (isAllBackImpossible) return false;
+
+        bool isAllUpImpossible = possibleTiles[position.x, position.y, position.z + 1]
+            .All(backTile => !CanAppendTile(tile, backTile, Direction.Up));
+        if (isAllBackImpossible) return false;
+
+        bool isAllDownImpossible = possibleTiles[position.x, position.y, position.z - 1]
+            .All(backTile => !CanAppendTile(tile, backTile, Direction.Down));
         if (isAllBackImpossible) return false;
 
         return true;
@@ -210,26 +221,29 @@ public class VoxelTilePlacerWCF : MonoBehaviour
     {
         for (int x = 1; x < MapSize.x - 1; x++)
             for (int y = 1; y < MapSize.y - 1; y++)
-            {
-                PlaceTile(x, y);
-            }
+                for (int z = 1; z < MapSize.z - 1; z++)
+                {
+                    PlaceTile(x, y, z);
+                }
     }
 
-    private void EnqueueNeighboursToRecalc(Vector2Int position)
+    private void EnqueueNeighboursToRecalc(Vector3Int position)
     {
-        recalcPossibleTilesQueue.Enqueue(new Vector2Int(position.x + 1, position.y));
-        recalcPossibleTilesQueue.Enqueue(new Vector2Int(position.x - 1, position.y));
-        recalcPossibleTilesQueue.Enqueue(new Vector2Int(position.x, position.y + 1));
-        recalcPossibleTilesQueue.Enqueue(new Vector2Int(position.x, position.y - 1));
+        recalcPossibleTilesQueue.Enqueue(new Vector3Int(position.x + 1, position.y, position.z));
+        recalcPossibleTilesQueue.Enqueue(new Vector3Int(position.x - 1, position.y, position.z));
+        recalcPossibleTilesQueue.Enqueue(new Vector3Int(position.x, position.y + 1, position.z));
+        recalcPossibleTilesQueue.Enqueue(new Vector3Int(position.x, position.y - 1, position.z));
+        recalcPossibleTilesQueue.Enqueue(new Vector3Int(position.x, position.y, position.z + 1));
+        recalcPossibleTilesQueue.Enqueue(new Vector3Int(position.x, position.y, position.z - 1));
     }
 
-    private void PlaceTile(int x, int y)
+    private void PlaceTile(int x, int y, int z)
     {
-        if (possibleTiles[x, y].Count == 0) return;
+        if (possibleTiles[x, y, z].Count == 0) return;
 
-        VoxelTile selectedTile = GetRandomTile(possibleTiles[x, y]);
-        Vector3 position = selectedTile.VoxelSize * selectedTile.TileSideVoxels * new Vector3(x, 0, y);
-        spawnedTiles[x, y] = Instantiate(selectedTile, position, selectedTile.transform.rotation);
+        VoxelTile selectedTile = GetRandomTile(possibleTiles[x, y, z]);
+        Vector3 position = selectedTile.VoxelSize * selectedTile.TileSideVoxels * new Vector3(x, z, y);
+        spawnedTiles[x, y, z] = Instantiate(selectedTile, position, selectedTile.transform.rotation);
     }
 
     private VoxelTile GetRandomTile(List<VoxelTile> availableTiles)
@@ -274,6 +288,14 @@ public class VoxelTilePlacerWCF : MonoBehaviour
         else if (direction == Direction.Back)
         {
             return Enumerable.SequenceEqual(existingTile.ColorsBack, tileToAppend.ColorsForward);
+        }
+        else if (direction == Direction.Up)
+        {
+            return Enumerable.SequenceEqual(existingTile.ColorsUp, tileToAppend.ColorsDown);
+        }
+        else if (direction == Direction.Down)
+        {
+            return Enumerable.SequenceEqual(existingTile.ColorsDown, tileToAppend.ColorsUp);
         }
         else
         {
