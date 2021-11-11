@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 public class VoxelTilePlacerWCF : MonoBehaviour
 {
     public List<VoxelTile> TilePrefabs;
-    public Vector3Int MapSize = new Vector3Int(10, 10, 5);
+    public Vector3Int MapSize = new Vector3Int(10, 10, 4);
 
     private VoxelTile[,,] spawnedTiles;
 
@@ -87,7 +87,7 @@ public class VoxelTilePlacerWCF : MonoBehaviour
 
     private void Generate()
     {
-        possibleTiles = new List<VoxelTile>[MapSize.x, MapSize.y];
+        possibleTiles = new List<VoxelTile>[MapSize.x, MapSize.y, MapSize.z];
 
         int maxAttempts = 10;
         int attempts = 0;
@@ -95,15 +95,16 @@ public class VoxelTilePlacerWCF : MonoBehaviour
         {
             for (int x = 0; x < MapSize.x; x++)
                 for (int y = 0; y < MapSize.y; y++)
-                {
-                    possibleTiles[x, y] = new List<VoxelTile>(TilePrefabs);
-                }
+                    for (int z = 0; z<MapSize.z; z++)
+                    {
+                        possibleTiles[x, y, z] = new List<VoxelTile>(TilePrefabs);
+                    }
 
             VoxelTile tileInCenter = GetRandomTile(TilePrefabs);
-            possibleTiles[MapSize.x / 2, MapSize.y / 2] = new List<VoxelTile> { tileInCenter };
+            possibleTiles[MapSize.x / 2, MapSize.y / 2, Mapsize.z / 2] = new List<VoxelTile> { tileInCenter };
 
             recalcPossibleTilesQueue.Clear();
-            EnqueueNeighboursToRecalc(new Vector2Int(MapSize.x / 2, MapSize.y / 2));
+            EnqueueNeighboursToRecalc(new Vector3Int(MapSize.x / 2, MapSize.y / 2, MapSize.z / 2));
 
             bool success = GenerateAllPossibleTiles();
 
