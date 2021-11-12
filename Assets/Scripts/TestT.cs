@@ -1,7 +1,8 @@
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class VoxelTile : MonoBehaviour
+public class TestT : MonoBehaviour
 {
     public float VoxelSize = 0.1f;
     public int TileSideVoxels = 10;
@@ -24,8 +25,11 @@ public class VoxelTile : MonoBehaviour
     [HideInInspector] public int[] ColorsBack;
     [HideInInspector] public int[] ColorsUp;
     [HideInInspector] public int[] ColorsDown;
-
-    public void CalculateSidesColors()
+    private void Start()
+    {
+        CalculateSidesColorsTest();
+    }
+    private void CalculateSidesColorsTest()
     {
         ColorsRight = new int[TileSideVoxels * TileSideVoxels];
         ColorsForward = new int[TileSideVoxels * TileSideVoxels];
@@ -38,17 +42,17 @@ public class VoxelTile : MonoBehaviour
         {
             for (int i = 0; i < TileSideVoxels; i++)
             {
-                ColorsRight[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Right);
-                ColorsForward[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Forward);
-                ColorsLeft[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Left);
-                ColorsBack[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Back);
-                ColorsUp[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Up);
-                ColorsDown[y * TileSideVoxels + i] = GetVoxelColor(y, i, Direction.Down);
+                ColorsRight[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Right);
+                ColorsForward[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Forward);
+                ColorsLeft[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Left);
+                ColorsBack[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Back);
+                ColorsUp[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Up);
+                ColorsDown[y * TileSideVoxels + i] = GetVoxelColorTest(y, i, Direction.Down);
             }
         }
     }
 
-    public void Rotate90()
+    private void Rotate90Test()
     {
         transform.Rotate(0, 90, 0);
 
@@ -83,7 +87,7 @@ public class VoxelTile : MonoBehaviour
         //Debug.Log(string.Join(",", ColorsRight));
     }
 
-    public int GetVoxelColor(int verticalLayer, int horizontalOffset, Direction direction)
+    private int GetVoxelColorTest(int verticalLayer, int horizontalOffset, Direction direction)
     {
         var meshCollider = GetComponentInChildren<MeshCollider>();
 
@@ -130,9 +134,10 @@ public class VoxelTile : MonoBehaviour
         }
         else
         {
-            throw new ArgumentException("Wrong direction value, should be Direction.left/right/back/forward/up/down",
-                nameof(direction));
+            rayDir = Vector3.zero;
+            rayStart = Vector3.zero;
         }
+
 
         if (direction == Direction.Up) rayStart.y = meshCollider.bounds.max.y - half - TileSideVoxels * vox;
         else if (direction == Direction.Down) rayStart.y = meshCollider.bounds.max.y + half;
